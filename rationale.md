@@ -1,7 +1,7 @@
 # Yiam — Design Rationale
 
 > ชื่อ "Yiam" ยืนยันแล้ว (2026-07-05) — จาก "เยี่ยม"
-> Playground project (pmpg) · ทำใน Figma beta ผ่าน figma-cli — ลองเล่นของใหม่เฉยๆ
+> Repo ของตัวเอง (~/Desktop/yiam · แยกจาก pmpg 2026-07-05 เพื่อ sync 2 เครื่อง) · Figma ยังทำผ่าน figma-cli ใน pmpg
 
 ---
 

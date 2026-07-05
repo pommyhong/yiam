@@ -2,7 +2,7 @@
 
 **In one line:** Minimal · mono-first expense tracker — พื้นขาว, ปุ่มหลักสีดำ, สีสื่อความหมายไม่ใช่ตกแต่ง
 
-> import: `figma-cli import yiam/DESIGN.md --collection "Yiam"` → สร้าง Figma variables จริง
+> import: `figma-cli import ~/Desktop/yiam/DESIGN.md --collection "Yiam"` (รันจาก pmpg) → สร้าง Figma variables จริง
 
 ---
 
