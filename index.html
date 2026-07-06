@@ -227,13 +227,18 @@ main::-webkit-scrollbar{display:none}
   padding:10px 16px calc(22px + env(safe-area-inset-bottom,0px));
   display:flex; gap:10px; align-items:center;
   background:linear-gradient(transparent,var(--bg) 40%)}
-nav{flex:1; background:var(--card); border-radius:99px; display:flex; padding:5px}
+nav{flex:1; background:rgba(60,64,74,.38); border-radius:99px; display:flex; padding:5px;
+  -webkit-backdrop-filter:blur(24px) saturate(1.8) brightness(1.25); backdrop-filter:blur(24px) saturate(1.8) brightness(1.25);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 8px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.1)}
 nav button{flex:1; background:none; border:none; color:var(--dim); font-size:11px; padding:9px 4px;
-  border-radius:99px; cursor:pointer; display:flex; flex-direction:column; gap:3px; align-items:center; font-family:inherit}
+  border-radius:99px; cursor:pointer; display:flex; flex-direction:column; gap:3px; align-items:center; font-family:inherit;
+  transition:background .2s, color .2s}
 nav button svg{width:19px; height:19px}
-nav button.on{background:var(--card2); color:var(--text); font-weight:700}
+nav button.on{background:rgba(255,255,255,.1); color:var(--text); font-weight:700}
 #fab{width:54px; height:54px; border-radius:50%; border:none; background:var(--text); color:var(--bg);
-  font-size:26px; cursor:pointer; flex-shrink:0; transition:transform .2s cubic-bezier(.3,1.5,.4,1); display:grid; place-items:center}
+  font-size:26px; cursor:pointer; flex-shrink:0; transition:transform .2s cubic-bezier(.3,1.5,.4,1); display:grid; place-items:center;
+  box-shadow:0 8px 20px rgba(0,0,0,.4)}
 #fab.x{transform:rotate(45deg)}
 #fab:active{transform:scale(.88)}
 #fab.x:active{transform:rotate(45deg) scale(.88)}
