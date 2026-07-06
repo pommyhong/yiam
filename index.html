@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yiam · เยี่ยม</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0E0F12; --card:#1A1C21; --card2:#23262D; --line:#2C3038;
+  --text:#F2F3F5; --muted:#8A8F98; --dim:#5C616B;
+  --green:#34C77B; --red:#FF6B5E; --accent:#8B5CF6;
+  --orange:#FF9F43; --blue:#4DA3FF; --purple:#A78BFA; --teal:#2DD4BF;
+  --pink:#F472B6; --yellow:#FBBF24; --lime:#A3E635; --cyan:#22D3EE; --gray:#9CA3AF;
+  --r:18px; --r-sm:12px;
+}
+html,body{height:100%}
+body{
+  background:#050608; color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Sukhumvit Set","Noto Sans Thai",sans-serif;
+  display:flex; justify-content:center;
+}
+#phone{
+  width:100%; max-width:400px; height:100dvh; max-height:900px;
+  background:var(--bg); position:relative; overflow:clip;
+  display:flex; flex-direction:column;
+}
+@media(min-width:480px){
+  body{align-items:center}
+  #phone{border-radius:36px; border:1px solid #22252B; height:92vh}
+}
+
+/* ---------- layout ---------- */
+main{flex:1; overflow-y:auto; padding:20px 18px 120px; scrollbar-width:none}
+main::-webkit-scrollbar{display:none}
+.view{display:none}
+.view.active{display:block}
+.topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+.topbar h1{font-size:26px; font-weight:800; letter-spacing:-.3px}
+.avatar{width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--pink));
+  display:grid; place-items:center; font-size:15px; font-weight:700}
+
+/* ---------- overview ---------- */
+.greet{color:var(--muted); font-size:13px; margin-bottom:4px}
+.headline{font-size:21px; font-weight:800; margin-bottom:2px}
+.headline em{font-style:normal; color:var(--purple)}
+.sub{color:var(--dim); font-size:12.5px; line-height:1.5; margin-bottom:16px}
+.card{background:var(--card); border-radius:var(--r); padding:16px; margin-bottom:12px}
+.card h3{font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:10px}
+.net{font-size:40px; font-weight:800; letter-spacing:-1px; margin:2px 0 10px}
+.net.pos{color:var(--green)} .net.neg{color:var(--red)}
+.duo{display:flex; gap:10px}
+.duo .pill{flex:1; background:var(--card2); border-radius:var(--r-sm); padding:10px 12px}
+.pill .lbl{font-size:11px; color:var(--muted); display:flex; align-items:center; gap:6px}
+.dot{width:7px; height:7px; border-radius:50%}
+.pill .amt{font-size:17px; font-weight:700; margin-top:3px}
+.bars{display:flex; align-items:flex-end; gap:8px; height:90px; margin-top:6px}
+.bcol{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; height:100%; justify-content:flex-end}
+.bar{width:100%; max-width:26px; border-radius:6px 6px 3px 3px; background:var(--card2); min-height:3px}
+.bar.hot{background:var(--red)}
+.bcol span{font-size:9.5px; color:var(--dim)}
+#gopro-slot{display:none}/* เจาะช่องไว้ ยังไม่เปิดใช้ (decision 06/07) */
+.count-note{color:var(--dim); font-size:11.5px; text-align:center; margin-top:4px}
+
+/* ---------- history ---------- */
+.balrow{margin-bottom:12px}
+.balrow .lbl{font-size:11.5px; color:var(--muted)}
+.balrow .amt{font-size:30px; font-weight:800; letter-spacing:-.5px}
+.balrow .rng{font-size:11px; color:var(--dim); margin-top:2px}
+.calhead{display:flex; align-items:center; justify-content:space-between;
+  background:var(--card); border-radius:var(--r) var(--r) 0 0; padding:12px 14px; cursor:pointer; user-select:none}
+.calhead .mon{font-weight:700; font-size:14.5px; display:flex; gap:8px; align-items:center}
+.calhead .chev{transition:transform .25s; color:var(--muted)}
+.calhead.open .chev{transform:rotate(180deg)}
+.mnav{display:flex; gap:4px}
+.mnav button{background:var(--card2); border:none; color:var(--text); width:28px; height:28px;
+  border-radius:8px; font-size:14px; cursor:pointer}
+#calwrap{overflow:hidden; max-height:0; transition:max-height .3s ease; background:var(--card);
+  border-radius:0 0 var(--r) var(--r); margin-bottom:12px}
+#calwrap.open{max-height:360px}
+.cal{padding:4px 10px 14px}
+.dow,.week{display:grid; grid-template-columns:repeat(7,1fr); gap:2px}
+.dow div{text-align:center; font-size:10px; color:var(--dim); padding:6px 0}
+.cell{aspect-ratio:.92; border-radius:10px; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:1px; font-size:12.5px; cursor:pointer; border:1px solid transparent}
+.cell:not(.blank):hover{background:var(--card2)}
+.cell.today{border-color:var(--accent)}
+.cell.sel{background:var(--accent); color:#fff}
+.cell .d{font-weight:600}
+.cell .v{font-size:8.5px; font-weight:700}
+.cell .v.neg{color:var(--red)} .cell .v.pos{color:var(--green)}
+.cell.sel .v{color:#fff}
+.cell.blank{cursor:default}
+.daygrp{margin-bottom:4px}
+.dayhead{display:flex; justify-content:space-between; align-items:baseline; padding:12px 4px 8px}
+.dayhead .d{font-size:13px; font-weight:700}
+.dayhead .s{font-size:12.5px; font-weight:700}
+.dayhead .s.neg{color:var(--red)} .dayhead .s.pos{color:var(--green)}
+.tx{display:flex; align-items:center; gap:12px; background:var(--card); border-radius:var(--r-sm);
+  padding:12px 14px; margin-bottom:8px; cursor:pointer}
+.tx:active{background:var(--card2)}
+.cico{width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font-size:17px; flex-shrink:0}
+.tx .mid{flex:1; min-width:0}
+.tx .nm{font-size:14px; font-weight:600}
+.tx .nt{font-size:11px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.tx .val{font-size:14.5px; font-weight:700; text-align:right}
+.tx .val.pos{color:var(--green)}
+.clearfil{width:100%; background:var(--card2); color:var(--muted); border:none; padding:10px;
+  border-radius:var(--r-sm); font-size:12.5px; cursor:pointer; margin-bottom:10px; font-family:inherit}
+
+/* ---------- budget ---------- */
+.seg{display:flex; gap:8px; overflow-x:auto; margin-bottom:20px; scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{background:var(--card); border:none; color:var(--muted); padding:8px 14px;
+  border-radius:99px; font-size:12.5px; white-space:nowrap; cursor:pointer; font-family:inherit}
+.seg button.on{background:var(--text); color:var(--bg); font-weight:700}
+.emptybox{text-align:center; padding:70px 30px; color:var(--muted)}
+.emptybox .big{font-size:44px; margin-bottom:14px}
+.emptybox h4{color:var(--text); font-size:16px; margin-bottom:6px}
+.emptybox p{font-size:12.5px; line-height:1.6; color:var(--dim)}
+
+/* ---------- bottom nav + FAB ---------- */
+#navwrap{position:absolute; bottom:0; left:0; right:0; padding:10px 16px 22px;
+  display:flex; gap:10px; align-items:center;
+  background:linear-gradient(transparent,var(--bg) 40%)}
+nav{flex:1; background:var(--card); border-radius:99px; display:flex; padding:5px}
+nav button{flex:1; background:none; border:none; color:var(--dim); font-size:11px; padding:9px 4px;
+  border-radius:99px; cursor:pointer; display:flex; flex-direction:column; gap:3px; align-items:center; font-family:inherit}
+nav button svg{width:19px; height:19px}
+nav button.on{background:var(--card2); color:var(--text); font-weight:700}
+#fab{width:54px; height:54px; border-radius:50%; border:none; background:var(--text); color:var(--bg);
+  font-size:26px; cursor:pointer; flex-shrink:0; transition:transform .2s; display:grid; place-items:center}
+#fab.x{transform:rotate(45deg)}
+
+#fabmenu{position:absolute; inset:0; background:rgba(8,9,12,.72); backdrop-filter:blur(6px);
+  display:none; z-index:20}
+#fabmenu.open{display:block}
+.fabopts{position:absolute; right:22px; bottom:100px; display:flex; flex-direction:column; gap:12px; align-items:flex-end}
+.fabopt{display:flex; align-items:center; gap:12px; cursor:pointer}
+.fabopt .t{font-size:14px; font-weight:700; background:var(--card); padding:8px 14px; border-radius:99px}
+.fabopt .c{width:50px; height:50px; border-radius:50%; display:grid; place-items:center; font-size:22px; color:#fff}
+
+/* ---------- sheets ---------- */
+.sheet{position:absolute; inset:0; background:var(--bg); z-index:30; display:flex; flex-direction:column;
+  transform:translateY(100%); visibility:hidden;
+  transition:transform .3s cubic-bezier(.3,.9,.3,1), visibility 0s .3s}
+.sheet.open{transform:translateY(0); visibility:visible; transition:transform .3s cubic-bezier(.3,.9,.3,1)}
+.shead{display:flex; align-items:center; justify-content:space-between; padding:16px 18px}
+.shead .ttl{font-size:15.5px; font-weight:700}
+.icbtn{width:38px; height:38px; border-radius:50%; border:none; background:var(--card);
+  color:var(--text); font-size:16px; cursor:pointer}
+.icbtn.ok{background:var(--accent); color:#fff}
+.icbtn.ok:disabled{background:var(--card); color:var(--dim)}
+.amtzone{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:0 24px}
+#amt{font-size:64px; font-weight:800; letter-spacing:-2px; min-height:78px}
+.thb{font-size:12px; color:var(--muted); background:var(--card); padding:5px 12px; border-radius:99px}
+#note{background:none; border:none; color:var(--text); text-align:center; font-size:14px;
+  font-family:inherit; outline:none; width:100%}
+#note::placeholder{color:var(--dim)}
+.meta{display:flex; gap:10px; padding:0 18px 12px}
+.meta button{flex:1; background:var(--card); border:none; color:var(--text); padding:12px;
+  border-radius:var(--r-sm); font-size:13px; cursor:pointer; font-family:inherit;
+  display:flex; align-items:center; justify-content:center; gap:8px}
+.meta .cdot{width:9px; height:9px; border-radius:50%}
+.pad{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:0 18px 26px}
+.pad button{background:var(--card); border:none; color:var(--text); font-size:23px; font-weight:600;
+  padding:16px; border-radius:var(--r-sm); cursor:pointer; font-family:inherit}
+.pad button:active{background:var(--card2)}
+
+/* half-sheets (category / date / detail) */
+.half{position:absolute; left:0; right:0; bottom:0; background:var(--card); z-index:40;
+  border-radius:24px 24px 0 0; padding:20px 18px 30px;
+  transform:translateY(105%); visibility:hidden;
+  transition:transform .3s cubic-bezier(.3,.9,.3,1), visibility 0s .3s}
+.half.open{transform:translateY(0); visibility:visible; transition:transform .3s cubic-bezier(.3,.9,.3,1)}
+#scrim{position:absolute; inset:0; background:rgba(8,9,12,.6); z-index:35; display:none}
+#scrim.open{display:block}
+.half h4{font-size:15px; font-weight:700; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chip{display:flex; align-items:center; gap:7px; background:var(--card2); border:1.5px solid transparent;
+  padding:9px 13px; border-radius:99px; font-size:13px; cursor:pointer; font-family:inherit; color:var(--text)}
+.chip.on{border-color:var(--accent)}
+.chip .ci{font-size:14px}
+/* date sheet */
+.dsheet .cal{padding:0}
+.dsheet .confirm{width:100%; margin-top:16px; background:var(--text); color:var(--bg); border:none;
+  padding:14px; border-radius:99px; font-size:14.5px; font-weight:700; cursor:pointer; font-family:inherit}
+/* detail sheet */
+.dt-amt{font-size:44px; font-weight:800; text-align:center; margin:6px 0 2px}
+.dt-amt.pos{color:var(--green)}
+.dt-sub{text-align:center; color:var(--muted); font-size:13px; margin-bottom:18px}
+.dt-note{background:var(--card2); border-radius:var(--r-sm); padding:12px 14px; font-size:13.5px;
+  color:var(--text); margin-bottom:18px}
+.dt-row{display:flex; gap:10px}
+.dt-row button{flex:1; border:none; padding:14px; border-radius:99px; font-size:14px; font-weight:700;
+  cursor:pointer; font-family:inherit}
+.dt-edit{background:var(--card2); color:var(--text)}
+.dt-del{background:rgba(255,107,94,.14); color:var(--red)}
+
+/* toast */
+#toast{position:absolute; left:50%; bottom:110px; transform:translate(-50%,20px); opacity:0;
+  background:#173B2A; color:var(--green); border:1px solid #1E5238; padding:10px 16px;
+  border-radius:99px; font-size:13.5px; font-weight:600; display:flex; gap:14px; align-items:center;
+  transition:all .25s; z-index:50; pointer-events:none; white-space:nowrap}
+#toast.show{opacity:1; transform:translate(-50%,0); pointer-events:auto}
+#toast button{background:none; border:none; color:var(--text); font-size:13px; text-decoration:underline;
+  cursor:pointer; font-family:inherit}
+</style>
+</head>
+<body>
+<div id="phone">
+
+<main>
+  <!-- ============ OVERVIEW ============ -->
+  <section class="view active" id="view-overview">
+    <div class="topbar"><h1>ภาพรวม</h1><div class="avatar">ป</div></div>
+    <div class="greet" id="greet">สวัสดี ปอม</div>
+    <div class="headline">เงินของเรา <em>กติกาของเรา</em></div>
+    <p class="sub">จดสั้นๆ วันละนิด ไม่ต้องเป๊ะทุกบาท — เห็นภาพรวมก็พอแล้ว</p>
+
+    <div class="card">
+      <h3 id="ov-month">รับ − จ่าย · เดือนนี้</h3>
+      <div class="net" id="ov-net">฿0</div>
+      <div class="duo">
+        <div class="pill">
+          <div class="lbl"><span class="dot" style="background:var(--green)"></span>รับ</div>
+          <div class="amt" id="ov-inc">฿0</div>
+        </div>
+        <div class="pill">
+          <div class="lbl"><span class="dot" style="background:var(--red)"></span>จ่าย</div>
+          <div class="amt" id="ov-exp">฿0</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="gopro-slot"><!-- Go Pro banner slot — dark launch, ยังไม่เปิด --></div>
+
+    <div class="card">
+      <h3>จ่ายรายวัน · 7 วันล่าสุด</h3>
+      <div class="bars" id="ov-bars"></div>
+    </div>
+    <div class="count-note" id="ov-count"></div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section class="view" id="view-history">
+    <div class="topbar"><h1>ประวัติ</h1><div class="avatar">ป</div></div>
+    <div class="balrow">
+      <div class="lbl">ยอดสุทธิเดือนนี้</div>
+      <div class="amt" id="h-bal">฿0</div>
+      <div class="rng" id="h-rng"></div>
+    </div>
+
+    <div class="calhead open" id="calhead">
+      <div class="mon"><span>📅</span><span id="h-mon"></span><span class="chev">▾</span></div>
+      <div class="mnav">
+        <button id="m-prev">‹</button><button id="m-next">›</button>
+      </div>
+    </div>
+    <div id="calwrap" class="open">
+      <div class="cal">
+        <div class="dow"><div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div></div>
+        <div id="calgrid"></div>
+      </div>
+    </div>
+
+    <div id="filnote"></div>
+    <div id="txlist"></div>
+  </section>
+
+  <!-- ============ BUDGET ============ -->
+  <section class="view" id="view-budget">
+    <div class="topbar"><h1>งบประมาณ</h1><div class="avatar">ป</div></div>
+    <div class="seg">
+      <button class="on">เดือนนี้</button><button>มิ.ย. 2026</button><button>พ.ค. 2026</button><button>เม.ย. 2026</button>
+    </div>
+    <div class="emptybox">
+      <div class="big">🎯</div>
+      <h4>ยังไม่ได้ตั้งงบ</h4>
+      <p>ส่วนนี้ยังไม่เปิดใช้ใน v1<br>— โครงหน้าไว้ก่อน เดี๋ยวค่อยว่ากัน —</p>
+    </div>
+  </section>
+</main>
+
+<!-- nav + fab -->
+<div id="navwrap">
+  <nav>
+    <button class="on" data-v="overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg>
+      ภาพรวม</button>
+    <button data-v="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+      ประวัติ</button>
+    <button data-v="budget">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+      งบ</button>
+  </nav>
+  <button id="fab">+</button>
+</div>
+
+<!-- fab expand : Income / Expense เท่านั้น (AI Log ตัดออก — decision 06/07) -->
+<div id="fabmenu">
+  <div class="fabopts">
+    <div class="fabopt" data-type="income"><span class="t">รายรับ</span><span class="c" style="background:var(--green)">＋</span></div>
+    <div class="fabopt" data-type="expense"><span class="t">รายจ่าย</span><span class="c" style="background:var(--red)">－</span></div>
+  </div>
+</div>
+
+<!-- add sheet (full-screen, slide-up) -->
+<div class="sheet" id="addsheet">
+  <div class="shead">
+    <button class="icbtn" id="add-close">✕</button>
+    <span class="ttl" id="add-title">รายจ่าย</span>
+    <button class="icbtn ok" id="add-save" disabled>✓</button>
+  </div>
+  <div class="amtzone">
+    <div id="amt">0</div>
+    <span class="thb">THB</span>
+    <input id="note" placeholder="โน้ตสั้นๆ (ไม่ใส่ก็ได้)" maxlength="60">
+  </div>
+  <div class="meta">
+    <button id="pick-cat"><span class="cdot" id="cat-dot"></span><span id="cat-name">หมวด</span></button>
+    <button id="pick-date"><span>📅</span><span id="date-name">วันนี้</span></button>
+  </div>
+  <div class="pad" id="pad"></div>
+</div>
+
+<div id="scrim"></div>
+
+<!-- category picker -->
+<div class="half" id="catsheet">
+  <h4>เลือกหมวด <span style="color:var(--dim);font-size:11px;font-weight:400">custom category = v2</span></h4>
+  <div class="chips" id="catchips"></div>
+</div>
+
+<!-- date picker -->
+<div class="half dsheet" id="datesheet">
+  <h4><span id="d-mon"></span>
+    <span class="mnav"><button id="d-prev" class="icbtn" style="width:30px;height:30px;font-size:13px">‹</button>
+    <button id="d-next" class="icbtn" style="width:30px;height:30px;font-size:13px">›</button></span></h4>
+  <div class="cal">
+    <div class="dow"><div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div></div>
+    <div id="dgrid"></div>
+  </div>
+  <button class="confirm" id="d-ok">ยืนยัน</button>
+</div>
+
+<!-- transaction detail -->
+<div class="half" id="dtsheet">
+  <div class="dt-amt" id="dt-amt"></div>
+  <div class="dt-sub" id="dt-sub"></div>
+  <div class="dt-note" id="dt-note"></div>
+  <div class="dt-row">
+    <button class="dt-edit" id="dt-edit">แก้ไข</button>
+    <button class="dt-del" id="dt-del">ลบ</button>
+  </div>
+</div>
+
+<div id="toast"><span id="toast-msg">บันทึกแล้ว ✓</span><button id="undo">เลิกทำ</button></div>
+
+</div>
+<script>
+/* ============ data ============ */
+const CATS={
+  expense:[
+    {id:'food',  n:'อาหาร',    i:'🍜', c:'var(--orange)'},
+    {id:'move',  n:'เดินทาง',  i:'🚌', c:'var(--blue)'},
+    {id:'shop',  n:'ช้อปปิ้ง', i:'🛍️', c:'var(--pink)'},
+    {id:'fun',   n:'บันเทิง',  i:'🎬', c:'var(--purple)'},
+    {id:'home',  n:'บ้าน',     i:'🏠', c:'var(--yellow)'},
+    {id:'stuff', n:'ของใช้',   i:'🧺', c:'var(--teal)'},
+    {id:'oexp',  n:'อื่นๆ',    i:'📦', c:'var(--gray)'},
+  ],
+  income:[
+    {id:'salary',n:'เงินเดือน',   i:'💼', c:'var(--green)'},
+    {id:'side',  n:'รายได้เสริม', i:'✨', c:'var(--lime)'},
+    {id:'refund',n:'เงินคืน',     i:'💸', c:'var(--cyan)'},
+    {id:'oinc',  n:'อื่นๆ',       i:'📦', c:'var(--gray)'},
+  ]
+};
+const cat=(t,id)=>CATS[t].find(c=>c.id===id)||CATS[t].at(-1);
+const KEY='yiam-tx-v1';
+const seed=()=>{
+  const y=new Date(); const m=`${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,'0')}`;
+  return [
+    {id:1,type:'income', amount:38000,cat:'salary',note:'เงินเดือน',      date:`${m}-01`},
+    {id:2,type:'expense',amount:8000, cat:'home',  note:'ค่าห้อง',        date:`${m}-01`},
+    {id:3,type:'expense',amount:250,  cat:'food',  note:'ข้าว+กาแฟ',      date:`${m}-02`},
+    {id:4,type:'expense',amount:320,  cat:'fun',   note:'ตั๋วหนัง',       date:`${m}-03`},
+    {id:5,type:'expense',amount:540,  cat:'stuff', note:'ของเข้าบ้าน',    date:`${m}-04`},
+    {id:6,type:'expense',amount:180,  cat:'food',  note:'มื้อเย็น',       date:`${m}-05`},
+    {id:7,type:'income', amount:500,  cat:'side',  note:'',               date:`${m}-05`},
+    {id:8,type:'expense',amount:65,   cat:'food',  note:'กาแฟ',           date:`${m}-06`},
+    {id:9,type:'expense',amount:47,   cat:'move',  note:'รถไฟฟ้า',        date:`${m}-06`},
+  ];
+};
+let txs; try{txs=JSON.parse(localStorage.getItem(KEY))||seed()}catch{txs=seed()}
+const save=()=>localStorage.setItem(KEY,JSON.stringify(txs));
+
+/* ============ helpers ============ */
+const TH_M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const fmt=n=>'฿'+Math.abs(n).toLocaleString('th-TH');
+const abbr=n=>{const a=Math.abs(n); if(a>=1000)return(a/1000).toFixed(a%1000?1:0).replace('.0','')+'k'; return String(a)};
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const today=iso(new Date());
+const thDate=s=>{const[y,m,d]=s.split('-').map(Number);return`${d} ${TH_M[m-1]} ${y}`};
+const dayLabel=s=>s===today?'วันนี้':(s===iso(new Date(Date.now()-864e5))?'เมื่อวาน':thDate(s));
+const $=s=>document.querySelector(s);
+
+/* ============ nav ============ */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+b.dataset.v));
+});
+
+/* ============ overview ============ */
+function renderOverview(){
+  const ym=today.slice(0,7);
+  const mtx=txs.filter(t=>t.date.startsWith(ym));
+  const inc=mtx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const exp=mtx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const net=inc-exp;
+  const el=$('#ov-net'); el.textContent=(net<0?'−':'')+fmt(net);
+  el.className='net '+(net<0?'neg':'pos');
+  $('#ov-inc').textContent=fmt(inc); $('#ov-exp').textContent=fmt(exp);
+  $('#ov-month').textContent=`รับ − จ่าย · ${TH_M[new Date().getMonth()]} ${new Date().getFullYear()}`;
+  $('#ov-count').textContent=mtx.length?`เดือนนี้จดไปแล้ว ${mtx.length} รายการ`: 'ยังไม่มีรายการเดือนนี้ — เริ่มจดได้เลย';
+  // 7-day bars
+  const wrap=$('#ov-bars'); wrap.innerHTML='';
+  const days=[...Array(7)].map((_,i)=>iso(new Date(Date.now()-(6-i)*864e5)));
+  const sums=days.map(d=>txs.filter(t=>t.date===d&&t.type==='expense').reduce((s,t)=>s+t.amount,0));
+  const max=Math.max(...sums,1);
+  days.forEach((d,i)=>{
+    const col=document.createElement('div'); col.className='bcol';
+    const h=Math.round(sums[i]/max*70);
+    col.innerHTML=`<div class="bar ${sums[i]===max&&sums[i]>0?'hot':''}" style="height:${Math.max(h,3)}px"></div><span>${+d.slice(8)}</span>`;
+    wrap.appendChild(col);
+  });
+}
+
+/* ============ history ============ */
+let calY=+today.slice(0,4), calM=+today.slice(5,7)-1, selDay=null;
+$('#calhead').onclick=e=>{
+  if(e.target.closest('.mnav'))return;
+  $('#calhead').classList.toggle('open'); $('#calwrap').classList.toggle('open');
+};
+$('#m-prev').onclick=()=>{calM--; if(calM<0){calM=11;calY--} selDay=null; renderHistory()};
+$('#m-next').onclick=()=>{calM++; if(calM>11){calM=0;calY++} selDay=null; renderHistory()};
+
+function calCells(y,m,selected,clickFn,showAmt){
+  const first=new Date(y,m,1).getDay(), nd=new Date(y,m+1,0).getDate();
+  let html='',day=1;
+  for(let r=0;r<6&&day<=nd;r++){
+    html+='<div class="week">';
+    for(let c=0;c<7;c++){
+      const idx=r*7+c;
+      if(idx<first||day>nd){html+='<div class="cell blank"></div>';continue}
+      const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      let amtHtml='';
+      if(showAmt){
+        const dt=txs.filter(t=>t.date===ds);
+        if(dt.length){
+          const net=dt.reduce((s,t)=>s+(t.type==='income'?t.amount:-t.amount),0);
+          amtHtml=`<span class="v ${net<0?'neg':'pos'}">${net<0?'-':'+'}${abbr(net)}</span>`;
+        }
+      }
+      html+=`<div class="cell ${ds===today?'today':''} ${ds===selected?'sel':''}" data-d="${ds}">
+        <span class="d">${day}</span>${amtHtml}</div>`;
+      day++;
+    }
+    html+='</div>';
+  }
+  return html;
+}
+function renderHistory(){
+  $('#h-mon').textContent=`${TH_M[calM]} ${calY}`;
+  $('#calgrid').innerHTML=calCells(calY,calM,selDay,null,true);
+  document.querySelectorAll('#calgrid .cell:not(.blank)').forEach(c=>c.onclick=()=>{
+    selDay=(selDay===c.dataset.d)?null:c.dataset.d; renderHistory();
+  });
+  const ym=`${calY}-${String(calM+1).padStart(2,'0')}`;
+  const mtx=txs.filter(t=>t.date.startsWith(ym));
+  const net=mtx.reduce((s,t)=>s+(t.type==='income'?t.amount:-t.amount),0);
+  $('#h-bal').textContent=(net<0?'−':'')+fmt(net);
+  $('#h-bal').style.color=net<0?'var(--red)':'var(--green)';
+  $('#h-rng').textContent=`1 – ${new Date(calY,calM+1,0).getDate()} ${TH_M[calM]} ${calY}`;
+  $('#filnote').innerHTML=selDay?`<button class="clearfil">กำลังดูเฉพาะ ${thDate(selDay)} · แตะเพื่อดูทั้งเดือน</button>`:'';
+  const cf=$('.clearfil'); if(cf)cf.onclick=()=>{selDay=null;renderHistory()};
+  // list
+  const shown=selDay?mtx.filter(t=>t.date===selDay):mtx;
+  const bydate={}; shown.forEach(t=>(bydate[t.date]=bydate[t.date]||[]).push(t));
+  const list=$('#txlist'); list.innerHTML='';
+  if(!shown.length){
+    list.innerHTML=`<div class="emptybox"><div class="big">🌱</div><h4>ยังไม่มีรายการ</h4><p>ว่างจริงๆ ไม่ใช่แอปค้าง<br>กด + เพื่อเริ่มจด</p></div>`;
+  }
+  Object.keys(bydate).sort().reverse().forEach(d=>{
+    const g=bydate[d];
+    const dnet=g.reduce((s,t)=>s+(t.type==='income'?t.amount:-t.amount),0);
+    const grp=document.createElement('div'); grp.className='daygrp';
+    grp.innerHTML=`<div class="dayhead"><span class="d">${dayLabel(d)}</span>
+      <span class="s ${dnet<0?'neg':'pos'}">${dnet<0?'−':'+'}${fmt(dnet)}</span></div>`;
+    g.forEach(t=>{
+      const c=cat(t.type,t.cat);
+      const row=document.createElement('div'); row.className='tx';
+      row.innerHTML=`<div class="cico" style="background:color-mix(in srgb,${c.c} 22%,transparent)">${c.i}</div>
+        <div class="mid"><div class="nm">${c.n}</div>${t.note?`<div class="nt">${t.note}</div>`:''}</div>
+        <div class="val ${t.type==='income'?'pos':''}">${t.type==='income'?'+':'−'}${fmt(t.amount)}</div>`;
+      row.onclick=()=>openDetail(t.id);
+      grp.appendChild(row);
+    });
+    list.appendChild(grp);
+  });
+}
+
+/* ============ add flow ============ */
+let addType='expense', amtStr='0', addCat=null, addDate=today, editingId=null;
+const fab=$('#fab'), fabmenu=$('#fabmenu');
+fab.onclick=()=>{
+  const opening=!fabmenu.classList.contains('open');
+  fabmenu.classList.toggle('open',opening); fab.classList.toggle('x',opening);
+};
+fabmenu.onclick=e=>{
+  const opt=e.target.closest('.fabopt');
+  fabmenu.classList.remove('open'); fab.classList.remove('x');
+  if(opt)openAdd(opt.dataset.type,null);
+};
+function openAdd(type,tx){
+  addType=type; editingId=tx?tx.id:null;
+  amtStr=tx?String(tx.amount):'0';
+  addCat=tx?tx.cat:(CATS[type][type==='expense'?0:0].id); // default: หมวดแรก (smart default v2)
+  addDate=tx?tx.date:today;
+  $('#note').value=tx?tx.note:'';
+  $('#add-title').textContent=(tx?'แก้ไข · ':'')+(type==='income'?'รายรับ':'รายจ่าย');
+  paintAmt(); paintMeta();
+  $('#addsheet').classList.add('open');
+}
+$('#add-close').onclick=()=>$('#addsheet').classList.remove('open');
+function paintAmt(){
+  $('#amt').textContent=(+amtStr).toLocaleString('th-TH');
+  $('#add-save').disabled=+amtStr<=0;
+}
+function paintMeta(){
+  const c=cat(addType,addCat);
+  $('#cat-dot').style.background=c.c; $('#cat-name').textContent=c.i+' '+c.n;
+  $('#date-name').textContent=addDate===today?'วันนี้':thDate(addDate);
+}
+const pad=$('#pad');
+['1','2','3','4','5','6','7','8','9','.','0','⌫'].forEach(k=>{
+  const b=document.createElement('button'); b.textContent=k;
+  b.onclick=()=>{
+    if(k==='⌫')amtStr=amtStr.length>1?amtStr.slice(0,-1):'0';
+    else if(k==='.'){if(!amtStr.includes('.'))amtStr+='.'}
+    else amtStr=(amtStr==='0'?k:amtStr+k).slice(0,9);
+    paintAmt();
+  };
+  pad.appendChild(b);
+});
+
+/* category sheet */
+const scrim=$('#scrim');
+const closeHalves=()=>{document.querySelectorAll('.half').forEach(h=>h.classList.remove('open'));scrim.classList.remove('open')};
+scrim.onclick=closeHalves;
+$('#pick-cat').onclick=()=>{
+  const box=$('#catchips'); box.innerHTML='';
+  CATS[addType].forEach(c=>{
+    const b=document.createElement('button');
+    b.className='chip'+(c.id===addCat?' on':'');
+    b.innerHTML=`<span class="ci">${c.i}</span>${c.n}`;
+    b.onclick=()=>{addCat=c.id;paintMeta();closeHalves()};
+    box.appendChild(b);
+  });
+  scrim.classList.add('open'); $('#catsheet').classList.add('open');
+};
+
+/* date sheet */
+let dY=+today.slice(0,4), dM=+today.slice(5,7)-1, dSel=today;
+function renderDGrid(){
+  $('#d-mon').textContent=`${TH_M[dM]} ${dY}`;
+  $('#dgrid').innerHTML=calCells(dY,dM,dSel,null,false);
+  document.querySelectorAll('#dgrid .cell:not(.blank)').forEach(c=>c.onclick=()=>{dSel=c.dataset.d;renderDGrid()});
+}
+$('#d-prev').onclick=()=>{dM--; if(dM<0){dM=11;dY--} renderDGrid()};
+$('#d-next').onclick=()=>{dM++; if(dM>11){dM=0;dY++} renderDGrid()};
+$('#pick-date').onclick=()=>{dSel=addDate; dY=+addDate.slice(0,4); dM=+addDate.slice(5,7)-1;
+  renderDGrid(); scrim.classList.add('open'); $('#datesheet').classList.add('open')};
+$('#d-ok').onclick=()=>{addDate=dSel;paintMeta();closeHalves()};
+
+/* save + toast + undo */
+let lastAction=null, toastTimer=null;
+$('#add-save').onclick=()=>{
+  const rec={id:editingId??Date.now(),type:addType,amount:+amtStr,cat:addCat,
+    note:$('#note').value.trim(),date:addDate};
+  if(editingId){const i=txs.findIndex(t=>t.id===editingId); lastAction={kind:'edit',before:{...txs[i]}}; txs[i]=rec}
+  else{lastAction={kind:'add',id:rec.id}; txs.push(rec)}
+  save(); renderAll();
+  $('#addsheet').classList.remove('open');
+  showToast(editingId?'แก้ไขแล้ว ✓':'บันทึกแล้ว ✓');
+};
+function showToast(msg){
+  $('#toast-msg').textContent=msg;
+  $('#toast').classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2500);
+}
+$('#undo').onclick=()=>{
+  if(!lastAction)return;
+  if(lastAction.kind==='add')txs=txs.filter(t=>t.id!==lastAction.id);
+  if(lastAction.kind==='edit'){const i=txs.findIndex(t=>t.id===lastAction.before.id); if(i>-1)txs[i]=lastAction.before}
+  if(lastAction.kind==='del')txs.push(lastAction.tx);
+  lastAction=null; save(); renderAll();
+  $('#toast').classList.remove('show');
+};
+
+/* ============ detail ============ */
+let dtId=null, delArmed=false;
+function openDetail(id){
+  const t=txs.find(x=>x.id===id); if(!t)return;
+  dtId=id; delArmed=false;
+  const c=cat(t.type,t.cat);
+  $('#dt-amt').textContent=(t.type==='income'?'+':'−')+fmt(t.amount);
+  $('#dt-amt').className='dt-amt'+(t.type==='income'?' pos':'');
+  $('#dt-sub').textContent=`${c.i} ${c.n} · ${thDate(t.date)}`;
+  $('#dt-note').style.display=t.note?'block':'none';
+  $('#dt-note').textContent=t.note;
+  $('#dt-del').textContent='ลบ';
+  scrim.classList.add('open'); $('#dtsheet').classList.add('open');
+}
+$('#dt-edit').onclick=()=>{
+  const t=txs.find(x=>x.id===dtId); closeHalves(); if(t)openAdd(t.type,t);
+};
+$('#dt-del').onclick=()=>{
+  if(!delArmed){delArmed=true;$('#dt-del').textContent='แตะอีกครั้งเพื่อยืนยันลบ';return}
+  const t=txs.find(x=>x.id===dtId);
+  lastAction={kind:'del',tx:{...t}};
+  txs=txs.filter(x=>x.id!==dtId);
+  save(); renderAll(); closeHalves(); showToast('ลบแล้ว');
+};
+
+/* ============ boot ============ */
+function renderAll(){renderOverview();renderHistory()}
+const hr=new Date().getHours();
+$('#greet').textContent=hr<12?'อรุณสวัสดิ์ ปอม ☀️':hr<18?'สวัสดีตอนบ่าย ปอม':'สวัสดีตอนค่ำ ปอม 🌙';
+renderAll();
+</script>
+</body>
+</html>
