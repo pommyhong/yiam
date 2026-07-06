@@ -31,7 +31,8 @@ body{
 }
 
 /* ---------- layout ---------- */
-main{flex:1; overflow-y:auto; padding:20px 18px 120px; scrollbar-width:none}
+main{flex:1; overflow-y:auto; scrollbar-width:none;
+  padding:calc(20px + env(safe-area-inset-top,0px)) 18px 120px}
 main::-webkit-scrollbar{display:none}
 .view{display:none}
 .view.active{display:block}
@@ -120,7 +121,8 @@ main::-webkit-scrollbar{display:none}
 .emptybox p{font-size:12.5px; line-height:1.6; color:var(--dim)}
 
 /* ---------- bottom nav + FAB ---------- */
-#navwrap{position:absolute; bottom:0; left:0; right:0; padding:10px 16px 22px;
+#navwrap{position:absolute; bottom:0; left:0; right:0;
+  padding:10px 16px calc(22px + env(safe-area-inset-bottom,0px));
   display:flex; gap:10px; align-items:center;
   background:linear-gradient(transparent,var(--bg) 40%)}
 nav{flex:1; background:var(--card); border-radius:99px; display:flex; padding:5px}
@@ -145,10 +147,11 @@ nav button.on{background:var(--card2); color:var(--text); font-weight:700}
   transform:translateY(100%); visibility:hidden;
   transition:transform .3s cubic-bezier(.3,.9,.3,1), visibility 0s .3s}
 .sheet.open{transform:translateY(0); visibility:visible; transition:transform .3s cubic-bezier(.3,.9,.3,1)}
-.shead{display:flex; align-items:center; justify-content:space-between; padding:16px 18px}
+.shead{display:flex; align-items:center; justify-content:space-between;
+  padding:calc(16px + env(safe-area-inset-top,0px)) 18px 16px}
 .shead .ttl{font-size:15.5px; font-weight:700}
-.icbtn{width:38px; height:38px; border-radius:50%; border:none; background:var(--card);
-  color:var(--text); font-size:16px; cursor:pointer}
+.icbtn{width:44px; height:44px; border-radius:50%; border:none; background:var(--card);
+  color:var(--text); font-size:17px; cursor:pointer}
 .icbtn.ok{background:var(--accent); color:#fff}
 .icbtn.ok:disabled{background:var(--card); color:var(--dim)}
 .amtzone{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:0 24px}
@@ -162,7 +165,8 @@ nav button.on{background:var(--card2); color:var(--text); font-weight:700}
   border-radius:var(--r-sm); font-size:13px; cursor:pointer; font-family:inherit;
   display:flex; align-items:center; justify-content:center; gap:8px}
 .meta .cdot{width:9px; height:9px; border-radius:50%}
-.pad{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:0 18px 26px}
+.pad{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
+  padding:0 18px calc(26px + env(safe-area-inset-bottom,0px))}
 .pad button{background:var(--card); border:none; color:var(--text); font-size:23px; font-weight:600;
   padding:16px; border-radius:var(--r-sm); cursor:pointer; font-family:inherit}
 .pad button:active{background:var(--card2)}
@@ -544,16 +548,29 @@ function paintMeta(){
   $('#cat-dot').style.background=c.c; $('#cat-name').textContent=c.i+' '+c.n;
   $('#date-name').textContent=addDate===today?'วันนี้':thDate(addDate);
 }
+function pressKey(k){
+  if(k==='⌫')amtStr=amtStr.length>1?amtStr.slice(0,-1):'0';
+  else if(k==='.'){if(!amtStr.includes('.'))amtStr+='.'}
+  else amtStr=(amtStr==='0'?k:amtStr+k).slice(0,9);
+  paintAmt();
+}
 const pad=$('#pad');
 ['1','2','3','4','5','6','7','8','9','.','0','⌫'].forEach(k=>{
   const b=document.createElement('button'); b.textContent=k;
-  b.onclick=()=>{
-    if(k==='⌫')amtStr=amtStr.length>1?amtStr.slice(0,-1):'0';
-    else if(k==='.'){if(!amtStr.includes('.'))amtStr+='.'}
-    else amtStr=(amtStr==='0'?k:amtStr+k).slice(0,9);
-    paintAmt();
-  };
+  b.onclick=()=>pressKey(k);
   pad.appendChild(b);
+});
+/* physical keyboard (คอม): เลข/จุด/Backspace/Enter/Esc ใช้ได้เหมือน keypad */
+document.addEventListener('keydown',e=>{
+  if(!$('#addsheet').classList.contains('open'))return;
+  if(document.activeElement===$('#note'))return; // กำลังพิมพ์โน้ตอยู่ ไม่แย่ง key
+  if(/^[0-9]$/.test(e.key))pressKey(e.key);
+  else if(e.key==='.')pressKey('.');
+  else if(e.key==='Backspace')pressKey('⌫');
+  else if(e.key==='Enter'&&!$('#add-save').disabled)$('#add-save').click();
+  else if(e.key==='Escape')$('#addsheet').classList.remove('open');
+  else return;
+  e.preventDefault();
 });
 
 /* category sheet */
