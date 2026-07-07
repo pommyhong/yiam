@@ -395,6 +395,9 @@ nav button.on{background:rgba(255,255,255,.22); color:#fff; font-weight:700; box
   cursor:pointer; font-family:inherit}
 .login-submit{background:var(--accent); color:#fff}
 .login-signup{background:var(--card2); color:var(--text)}
+.test-btn{width:220px; background:transparent; color:var(--dim); border:1.5px dashed var(--card2);
+  padding:11px; border-radius:99px; font-size:11.5px; cursor:pointer; font-family:inherit; margin-top:2px}
+.test-btn:active{background:var(--card2)}
 
 /* toast */
 #toast{position:absolute; left:50%; bottom:110px; transform:translate(-50%,20px); opacity:0;
@@ -429,6 +432,7 @@ nav button.on{background:rgba(255,255,255,.22); color:#fff; font-weight:700; box
       <button class="login-signup" id="login-signup">สร้างบัญชีใหม่</button>
     </div>
   </div>
+  <button class="test-btn" id="test-signin">เข้าทดสอบเลย (ไม่ต้องรหัสผ่าน) — สำหรับ test เท่านั้น</button>
   <p class="login-err" id="login-err"></p>
 </div>
 <div id="phone">
@@ -696,7 +700,7 @@ nav button.on{background:rgba(255,255,255,.22); color:#fff; font-weight:700; box
 /* ============ firebase ============ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
-  signInWithEmailAndPassword, createUserWithEmailAndPassword }
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously }
   from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence }
   from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
@@ -714,7 +718,7 @@ const auth=getAuth(fbApp);
 const dbFS=getFirestore(fbApp);
 const googleProvider=new GoogleAuthProvider();
 enableIndexedDbPersistence(dbFS).catch(()=>{});
-let currentUid=null, unsubData=null;
+let currentUid=null, unsubData=null, pendingTestName=null;
 
 /* ============ data ============ */
 const CATS={
@@ -1405,6 +1409,11 @@ $('#login-signup').onclick=()=>{
   if(pass.length<6){loginErr({message:'รหัสผ่านต้อง 6 ตัวขึ้นไป'});return}
   createUserWithEmailAndPassword(auth,email,pass).catch(loginErr);
 };
+$('#test-signin').onclick=()=>{
+  $('#login-err').style.display='none';
+  pendingTestName=$('#login-email').value.trim()||'Tester';
+  signInAnonymously(auth).catch(loginErr);
+};
 
 /* ============ quick-add (from iOS Shortcut deep link) ============ */
 let quickAddHandled=false;
@@ -1434,6 +1443,11 @@ onAuthStateChanged(auth,user=>{
       txs=d.transactions||[];
       budgets=d.budgets||[];
       settings={name:user.displayName||'เพื่อน',color:AVATAR_COLORS[0],lang:'th',...(d.settings||{})};
+      if(pendingTestName&&!d.settings){
+        settings.name=pendingTestName;
+        saveSettings();
+      }
+      pendingTestName=null;
       paintAvatars();
       applyLang();
       $('#splash').classList.add('hide');
