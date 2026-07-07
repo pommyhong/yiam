@@ -369,6 +369,24 @@ nav button.on{background:rgba(255,255,255,.22); color:#fff; font-weight:700; box
 @keyframes splash-pop{0%{transform:scale(.6); opacity:0}100%{transform:scale(1); opacity:1}}
 @keyframes splash-bar{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.55)}}
 
+/* login */
+#loginscreen{position:fixed; inset:0; z-index:900; background:#0E0F12;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:24px;
+  transition:opacity .4s ease, visibility 0s .4s}
+#loginscreen.hide{opacity:0; visibility:hidden; pointer-events:none}
+#loginscreen .mark{width:64px; height:64px; border-radius:18px;
+  background:linear-gradient(135deg,var(--accent),var(--pink));
+  display:flex; align-items:flex-end; justify-content:center; gap:5px; padding:16px 14px}
+#loginscreen .mark span{width:11px; background:#fff; border-radius:3px}
+#loginscreen .mark span:nth-child(1){height:17px} #loginscreen .mark span:nth-child(2){height:29px} #loginscreen .mark span:nth-child(3){height:23px}
+#loginscreen .word{font-size:24px; font-weight:700; color:var(--text); margin-top:6px}
+.login-tag{color:var(--dim); font-size:13px; text-align:center; max-width:260px; line-height:1.5; margin-bottom:6px}
+.google-btn{display:flex; align-items:center; gap:10px; background:#fff; color:#1f1f1f; border:none;
+  padding:14px 26px; border-radius:99px; font-size:14.5px; font-weight:700; cursor:pointer; font-family:inherit}
+.google-btn:active{transform:scale(.97)}
+.google-btn svg{width:19px; height:19px}
+.login-err{color:var(--red); font-size:12px; text-align:center; max-width:260px; display:none}
+
 /* toast */
 #toast{position:absolute; left:50%; bottom:110px; transform:translate(-50%,20px); opacity:0;
   background:#173B2A; color:var(--green); border:1px solid #1E5238; padding:10px 16px;
@@ -384,6 +402,16 @@ nav button.on{background:rgba(255,255,255,.22); color:#fff; font-weight:700; box
   <div class="mark"><span></span><span></span><span></span></div>
   <div class="word font-serif">yiam</div>
   <div class="tag">จดสั้นๆ วันละนิด</div>
+</div>
+<div id="loginscreen" class="hide">
+  <div class="mark"><span></span><span></span><span></span></div>
+  <div class="word font-serif">yiam</div>
+  <p class="login-tag">เข้าสู่ระบบเพื่อเริ่มจด — ข้อมูลของแต่ละคนแยกกัน เห็นแค่ของตัวเอง</p>
+  <button class="google-btn" id="google-signin">
+    <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.9-2.26 5.36-4.78 7.02l7.73 6c4.51-4.18 7.09-10.36 7.09-17.49z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    เข้าสู่ระบบด้วย Google
+  </button>
+  <p class="login-err" id="login-err"></p>
 </div>
 <div id="phone">
 
@@ -646,7 +674,29 @@ nav button.on{background:rgba(255,255,255,.22); color:#fff; font-weight:700; box
 <div class="success-burst" id="successburst"><div class="circle">✓</div></div>
 
 </div>
-<script>
+<script type="module">
+/* ============ firebase ============ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence }
+  from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA108SPiyFms5YF4hR7LXDXzSrOpJIk5hM",
+  authDomain: "yiam-523b9.firebaseapp.com",
+  projectId: "yiam-523b9",
+  storageBucket: "yiam-523b9.firebasestorage.app",
+  messagingSenderId: "246123316505",
+  appId: "1:246123316505:web:7769f1162c667a1fb47188"
+};
+const fbApp=initializeApp(firebaseConfig);
+const auth=getAuth(fbApp);
+const dbFS=getFirestore(fbApp);
+const googleProvider=new GoogleAuthProvider();
+enableIndexedDbPersistence(dbFS).catch(()=>{});
+let currentUid=null, unsubData=null;
+
 /* ============ data ============ */
 const CATS={
   expense:[
@@ -668,33 +718,12 @@ const CATS={
 const cat=(t,id)=>{const c=CATS[t].find(c=>c.id===id)||CATS[t].at(-1); return {...c,n:(settings.lang==='en'?c.n_en:c.n)}};
 const PAYS=[{id:'cash',n:'เงินสด',n_en:'Cash',i:'💵'},{id:'transfer',n:'โอน',n_en:'Transfer',i:'🏦'},{id:'card',n:'บัตร',n_en:'Card',i:'💳'}];
 const pay=id=>{const p=PAYS.find(p=>p.id===id)||PAYS[0]; return {...p,n:(settings.lang==='en'?p.n_en:p.n)}};
-const KEY='yiam-tx-v1';
-const seed=()=>{
-  const y=new Date(); const m=`${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,'0')}`;
-  return [
-    {id:1,type:'income', amount:38000,cat:'salary',note:'เงินเดือน',      date:`${m}-01`,pay:'transfer',recurring:true},
-    {id:2,type:'expense',amount:8000, cat:'home',  note:'ค่าห้อง',        date:`${m}-01`,pay:'transfer',recurring:true},
-    {id:3,type:'expense',amount:250,  cat:'food',  note:'ข้าว+กาแฟ',      date:`${m}-02`,pay:'cash',recurring:false},
-    {id:4,type:'expense',amount:320,  cat:'fun',   note:'ตั๋วหนัง',       date:`${m}-03`,pay:'card',recurring:false},
-    {id:5,type:'expense',amount:540,  cat:'stuff', note:'ของเข้าบ้าน',    date:`${m}-04`,pay:'cash',recurring:false},
-    {id:6,type:'expense',amount:180,  cat:'food',  note:'มื้อเย็น',       date:`${m}-05`,pay:'cash',recurring:false},
-    {id:7,type:'income', amount:500,  cat:'side',  note:'',               date:`${m}-05`,pay:'transfer',recurring:false},
-    {id:8,type:'expense',amount:65,   cat:'food',  note:'กาแฟ',           date:`${m}-06`,pay:'cash',recurring:false},
-    {id:9,type:'expense',amount:47,   cat:'move',  note:'รถไฟฟ้า',        date:`${m}-06`,pay:'cash',recurring:false},
-  ];
-};
-let txs; try{txs=JSON.parse(localStorage.getItem(KEY))||seed()}catch{txs=seed()}
-const save=()=>localStorage.setItem(KEY,JSON.stringify(txs));
-
-const BKEY='yiam-budgets-v1';
-let budgets; try{budgets=JSON.parse(localStorage.getItem(BKEY))||[]}catch{budgets=[]}
-const saveBudgets=()=>localStorage.setItem(BKEY,JSON.stringify(budgets));
-
-const SKEY='yiam-settings-v1';
 const AVATAR_COLORS=['var(--accent)','var(--green)','var(--orange)','var(--blue)','var(--pink)','var(--teal)'];
-let settings; try{settings=JSON.parse(localStorage.getItem(SKEY))||{name:'ปอม',color:AVATAR_COLORS[0],lang:'th'}}catch{settings={name:'ปอม',color:AVATAR_COLORS[0],lang:'th'}}
-if(!settings.lang)settings.lang='th';
-const saveSettings=()=>localStorage.setItem(SKEY,JSON.stringify(settings));
+let txs=[], budgets=[], settings={name:'เพื่อน',color:AVATAR_COLORS[0],lang:'th'};
+function userDoc(){return doc(dbFS,'users',currentUid)}
+function save(){if(currentUid)setDoc(userDoc(),{transactions:txs},{merge:true})}
+function saveBudgets(){if(currentUid)setDoc(userDoc(),{budgets},{merge:true})}
+function saveSettings(){if(currentUid)setDoc(userDoc(),{settings},{merge:true})}
 
 /* ============ helpers ============ */
 const TH_M_TH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
@@ -1283,8 +1312,8 @@ $('#set-close').onclick=()=>{
   saveSettings(); paintAvatars(); closeHalves();
 };
 $('#set-logout').onclick=()=>{
-  showToast(t('loggedOut'));
   closeHalves();
+  signOut(auth);
 };
 $('#lang-th').onclick=()=>{settings.lang='th'; saveSettings(); applyLang(); openSettings()};
 $('#lang-en').onclick=()=>{settings.lang='en'; saveSettings(); applyLang(); openSettings()};
@@ -1335,9 +1364,39 @@ function applyLang(){
 
 /* ============ boot ============ */
 function renderAll(){renderOverview();renderHistory();renderBudgets()}
-paintAvatars();
-applyLang();
-setTimeout(()=>$('#splash').classList.add('hide'),900);
+
+$('#google-signin').onclick=()=>{
+  $('#login-err').style.display='none';
+  signInWithPopup(auth,googleProvider).catch(err=>{
+    $('#login-err').textContent=(settings.lang==='en'?'Sign-in failed: ':'เข้าสู่ระบบไม่สำเร็จ: ')+err.code;
+    $('#login-err').style.display='block';
+  });
+};
+
+onAuthStateChanged(auth,user=>{
+  if(unsubData){unsubData(); unsubData=null}
+  if(user){
+    currentUid=user.uid;
+    $('#loginscreen').classList.add('hide');
+    unsubData=onSnapshot(userDoc(),snap=>{
+      const d=snap.data()||{};
+      txs=d.transactions||[];
+      budgets=d.budgets||[];
+      settings={name:user.displayName||'เพื่อน',color:AVATAR_COLORS[0],lang:'th',...(d.settings||{})};
+      paintAvatars();
+      applyLang();
+      $('#splash').classList.add('hide');
+    },err=>{
+      console.error(err);
+      $('#splash').classList.add('hide');
+      showToast('เชื่อมต่อฐานข้อมูลไม่ได้ — เช็ค Firestore rules',false);
+    });
+  }else{
+    currentUid=null;
+    $('#loginscreen').classList.remove('hide');
+    $('#splash').classList.add('hide');
+  }
+});
 </script>
 </body>
 </html>
