@@ -1406,6 +1406,24 @@ $('#login-signup').onclick=()=>{
   createUserWithEmailAndPassword(auth,email,pass).catch(loginErr);
 };
 
+/* ============ quick-add (from iOS Shortcut deep link) ============ */
+let quickAddHandled=false;
+function handleQuickAdd(){
+  if(quickAddHandled)return; quickAddHandled=true;
+  const params=new URLSearchParams(location.search);
+  const type=params.get('add');
+  if(type!=='expense'&&type!=='income')return;
+  const amt=parseFloat(params.get('amount'));
+  const note=params.get('note')||'';
+  history.replaceState(null,'',location.pathname);
+  if(amt>0){
+    txs.push({id:Date.now(),type,amount:amt,cat:CATS[type][0].id,note,date:today,pay:'cash',recurring:false});
+    save(); renderAll(); burstSuccess(); showToast(t('saved'));
+  }else{
+    openAdd(type,null);
+  }
+}
+
 onAuthStateChanged(auth,user=>{
   if(unsubData){unsubData(); unsubData=null}
   if(user){
@@ -1419,6 +1437,7 @@ onAuthStateChanged(auth,user=>{
       paintAvatars();
       applyLang();
       $('#splash').classList.add('hide');
+      handleQuickAdd();
     },err=>{
       console.error(err);
       $('#splash').classList.add('hide');
