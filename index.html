@@ -92,22 +92,25 @@ main::-webkit-scrollbar{display:none}
 .rn-mid{flex:1; text-align:center}
 .rn-label{font-size:13.5px; font-weight:700}
 .rn-hint{font-size:10px; color:var(--dim); margin-top:1px}
-.donutrow{display:flex; align-items:center; gap:16px}
-.donutwrap{position:relative; flex-shrink:0}
-.donut-arrow{position:absolute; top:50%; transform:translateY(-50%); width:24px; height:24px; border-radius:50%;
-  background:var(--card2); color:var(--muted); border:none; font-size:12px; cursor:pointer; z-index:2;
+.donutrow{display:flex; flex-direction:column; align-items:center; gap:20px}
+.donutwrap{position:relative; flex-shrink:0; margin:6px 0}
+.donut-arrow{position:absolute; top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%;
+  background:var(--card2); color:var(--muted); border:none; font-size:14px; cursor:pointer; z-index:2;
   display:grid; place-items:center; font-family:inherit}
-.donut-arrow.l{left:-10px} .donut-arrow.r{right:-10px}
-#donut{width:100px; height:100px; border-radius:50%; flex-shrink:0; position:relative;
+.donut-arrow.l{left:-8px} .donut-arrow.r{right:-8px}
+#donut{width:220px; height:220px; border-radius:50%; flex-shrink:0; position:relative;
   display:grid; place-items:center; transition:transform .5s cubic-bezier(.3,1.3,.4,1)}
 #donut.spin{transform:rotate(360deg)}
-#donut::after{content:''; position:absolute; inset:16px; background:var(--card); border-radius:50%}
-.donut-total{position:relative; z-index:1; text-align:center; font-size:11px; font-weight:700; line-height:1.3}
-.legend{flex:1; display:flex; flex-direction:column; gap:7px; min-width:0}
-.legend-row{display:flex; align-items:center; gap:7px; font-size:11.5px}
-.legend-row .dot{width:8px; height:8px; border-radius:50%; flex-shrink:0}
+#donut::after{content:''; position:absolute; inset:38px; background:var(--card); border-radius:50%}
+.donut-total{position:relative; z-index:1; text-align:center; font-size:22px; font-weight:800; line-height:1.35}
+.donut-total span{font-size:12.5px}
+.legend{width:100%; display:flex; flex-direction:column; gap:2px; min-width:0}
+.legend-row{display:flex; align-items:center; gap:10px; font-size:14px; padding:9px 2px;
+  border-bottom:1px solid var(--card2)}
+.legend-row:last-child{border-bottom:none}
+.legend-row .dot{width:10px; height:10px; border-radius:50%; flex-shrink:0}
 .legend-row .n{flex:1; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.legend-row .p{color:var(--muted); font-weight:600}
+.legend-row .p{color:var(--muted); font-weight:700}
 .compare-row{display:flex; gap:14px; align-items:flex-end; height:100px; padding:0 10px}
 .compare-col{flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end}
 .compare-col .bar{width:60%; max-width:44px}
@@ -227,18 +230,23 @@ main::-webkit-scrollbar{display:none}
   padding:10px 16px calc(22px + env(safe-area-inset-bottom,0px));
   display:flex; gap:10px; align-items:center;
   background:linear-gradient(transparent,var(--bg) 40%)}
-nav{flex:1; background:rgba(60,64,74,.38); border-radius:99px; display:flex; padding:5px;
-  -webkit-backdrop-filter:blur(24px) saturate(1.8) brightness(1.25); backdrop-filter:blur(24px) saturate(1.8) brightness(1.25);
-  border:1px solid rgba(255,255,255,.14);
-  box-shadow:0 8px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.1)}
-nav button{flex:1; background:none; border:none; color:var(--dim); font-size:11px; padding:9px 4px;
+nav{flex:1; position:relative; overflow:hidden; background:rgba(255,255,255,.06); border-radius:99px; display:flex; padding:5px;
+  -webkit-backdrop-filter:blur(40px) saturate(2.2) brightness(1.5); backdrop-filter:blur(40px) saturate(2.2) brightness(1.5);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:0 10px 30px rgba(0,0,0,.4), inset 0 1px 1px rgba(255,255,255,.25), inset 0 -6px 12px rgba(0,0,0,.15)}
+nav::before{content:''; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+  background:linear-gradient(155deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,.04) 30%,rgba(255,255,255,0) 55%)}
+nav button{flex:1; position:relative; z-index:1; background:none; border:none; color:rgba(242,243,245,.6); font-size:11px; padding:9px 4px;
   border-radius:99px; cursor:pointer; display:flex; flex-direction:column; gap:3px; align-items:center; font-family:inherit;
   transition:background .2s, color .2s}
 nav button svg{width:19px; height:19px}
-nav button.on{background:rgba(255,255,255,.1); color:var(--text); font-weight:700}
-#fab{width:54px; height:54px; border-radius:50%; border:none; background:var(--text); color:var(--bg);
+nav button.on{background:rgba(255,255,255,.18); color:var(--text); font-weight:700; box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+#fab{width:54px; height:54px; border-radius:50%; border:none; color:#fff;
   font-size:26px; cursor:pointer; flex-shrink:0; transition:transform .2s cubic-bezier(.3,1.5,.4,1); display:grid; place-items:center;
-  box-shadow:0 8px 20px rgba(0,0,0,.4)}
+  box-shadow:0 8px 20px rgba(0,0,0,.4);
+  background:linear-gradient(135deg,var(--accent),var(--pink),var(--orange),var(--accent));
+  background-size:300% 300%; animation:fab-hue 6s ease-in-out infinite}
+@keyframes fab-hue{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 #fab.x{transform:rotate(45deg)}
 #fab:active{transform:scale(.88)}
 #fab.x:active{transform:rotate(45deg) scale(.88)}
@@ -393,7 +401,7 @@ nav button.on{background:rgba(255,255,255,.1); color:var(--text); font-weight:70
       </div>
     </div>
     <div class="greet" id="greet">สวัสดี ปอม</div>
-    <div class="headline" id="ov-headline">เงินของเรา <em>กติกาของเรา</em></div>
+    <div class="headline" id="ov-headline">เงินหาย <em>เดี๋ยวก็รู้</em></div>
     <p class="sub" id="ov-sub">จดสั้นๆ วันละนิด ไม่ต้องเป๊ะทุกบาท — เห็นภาพรวมก็พอแล้ว</p>
 
     <div class="rangenav">
@@ -721,7 +729,9 @@ const I18N={
     category:'หมวด',selectCat:'เลือกหมวด',date:'วันที่',paidWith:'จ่ายด้วย',paidWithQ:'จ่ายด้วยอะไร',isRecurring:'รายการประจำ',
     newBudget:'สร้างงบใหม่',budgetName:'ชื่องบ',amount:'จำนวนเงิน',budgetCats:'หมวดที่รวมในงบนี้ (เลือกได้หลายอัน)',
     startMonth:'เริ่มเดือน',rollover:'ยกยอดไปเดือนหน้า',createBudget:'สร้างงบ',
-    week:'รายสัปดาห์',month:'รายเดือน',year:'รายปี',last7:'7 วันล่าสุด'},
+    week:'รายสัปดาห์',month:'รายเดือน',year:'รายปี',last7:'7 วันล่าสุด',
+    tagline:'จดสั้นๆ วันละนิด ไม่ต้องเป๊ะทุกบาท — เห็นภาพรวมก็พอแล้ว',viewingOnly:'กำลังดูเฉพาะ',tapWholeMonth:'แตะเพื่อดูทั้งเดือน',
+    headline:'เงินหาย <em>เดี๋ยวก็รู้</em>'},
   en:{overview:'Overview',history:'History',budget:'Budget',budgetFull:'Budget',income:'Income',expense:'Expense',
     net:'Income − Expense',recv:'In',pay_:'Out',breakdown:'By category',trend:'Trend',compare:'Compare',
     dailySpend:'Daily spend · last 7 days',compareTitle:'This month vs last month',recurring:'Recurring',
@@ -738,7 +748,9 @@ const I18N={
     category:'Category',selectCat:'Choose category',date:'Date',paidWith:'Paid with',paidWithQ:'Paid with what?',isRecurring:'Recurring',
     newBudget:'New budget',budgetName:'Budget name',amount:'Amount',budgetCats:'Categories in this budget (pick multiple)',
     startMonth:'Start month',rollover:'Roll over to next month',createBudget:'Create budget',
-    week:'Weekly',month:'Monthly',year:'Yearly',last7:'last 7 days'}
+    week:'Weekly',month:'Monthly',year:'Yearly',last7:'last 7 days',
+    tagline:'A quick note each day — no need to be exact, just see the big picture.',viewingOnly:'Viewing only',tapWholeMonth:'Tap to see the whole month',
+    headline:'Money missing? <em>You\'ll know soon.</em>'}
 };
 function t(k){return (I18N[settings.lang]||I18N.th)[k]??k}
 
@@ -943,7 +955,7 @@ function renderHistory(){
   $('#h-bal').textContent=(net<0?'−':'')+fmt(net);
   $('#h-bal').style.color=net<0?'var(--red)':'var(--green)';
   $('#h-rng').textContent=`1 – ${new Date(calY,calM+1,0).getDate()} ${mn(calM)} ${calY}`;
-  $('#filnote').innerHTML=selDay?`<button class="clearfil">กำลังดูเฉพาะ ${thDate(selDay)} · แตะเพื่อดูทั้งเดือน</button>`:'';
+  $('#filnote').innerHTML=selDay?`<button class="clearfil">${t('viewingOnly')} ${thDate(selDay)} · ${t('tapWholeMonth')}</button>`:'';
   const cf=$('.clearfil'); if(cf)cf.onclick=()=>{selDay=null;renderHistory()};
   // list
   const shown=selDay?mtx.filter(t=>t.date===selDay):mtx;
@@ -1294,7 +1306,7 @@ function applyLang(){
     'nav-overview':'overview','nav-history':'history','nav-budget':'budget',
     'fab-income':'income','fab-expense':'expense',
     'lbl-netbal':'netBalance','seg-thismonth':'thisMonth','lbl-inc':'recv','lbl-exp':'pay_',
-    'lbl-dailyspend':'dailySpend','lbl-comparetitle':'compareTitle',
+    'lbl-dailyspend':'dailySpend','lbl-comparetitle':'compareTitle','ov-sub':'tagline',
     'lbl-category':'category','lbl-date':'date','lbl-paidwith':'paidWith','lbl-isrecurring':'isRecurring',
     'lbl-budgetname':'budgetName','lbl-amount':'amount','lbl-budgetcats':'budgetCats',
     'lbl-startmonth':'startMonth','lbl-rollover':'rollover',
@@ -1312,6 +1324,7 @@ function applyLang(){
   document.querySelectorAll('#period-sel option')[0].textContent=t('week');
   document.querySelectorAll('#period-sel option')[1].textContent=t('month');
   document.querySelectorAll('#period-sel option')[2].textContent=t('year');
+  $('#ov-headline').innerHTML=t('headline');
   paintGreet();
   paintDow();
   renderAll();
